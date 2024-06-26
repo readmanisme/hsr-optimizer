@@ -37,6 +37,7 @@ function generateSetConditionalParams(request, params) {
   params.enabledWatchmakerMasterOfDreamMachinations = setConditionals[Constants.Sets.WatchmakerMasterOfDreamMachinations][1] == true ? 1 : 0
   params.enabledIzumoGenseiAndTakamaDivineRealm = setConditionals[Constants.Sets.IzumoGenseiAndTakamaDivineRealm][1] == true ? 1 : 0
   params.enabledForgeOfTheKalpagniLantern = setConditionals[Constants.Sets.ForgeOfTheKalpagniLantern][1] == true ? 1 : 0
+  params.enabledTheWindSoaringValorous = setConditionals[Constants.Sets.TheWindSoaringValorous][1] == true ? 1 : 0
 
   params.valueChampionOfStreetwiseBoxing = setConditionals[Constants.Sets.ChampionOfStreetwiseBoxing][1] || 0
   params.valueWastelanderOfBanditryDesert = setConditionals[Constants.Sets.WastelanderOfBanditryDesert][1] || 0
@@ -45,13 +46,12 @@ function generateSetConditionalParams(request, params) {
   params.valuePrisonerInDeepConfinement = setConditionals[Constants.Sets.PrisonerInDeepConfinement][1] || 0
   params.valuePioneerDiverOfDeadWaters = setConditionals[Constants.Sets.PioneerDiverOfDeadWaters][1] || 0
   params.valueSigoniaTheUnclaimedDesolation = setConditionals[Constants.Sets.SigoniaTheUnclaimedDesolation][1] || 0
-  params.valueTheWindSoaringValorous = setConditionals[Constants.Sets.TheWindSoaringValorous][1] || 0
   params.valueDuranDynastyOfRunningWolves = setConditionals[Constants.Sets.DuranDynastyOfRunningWolves][1] || 0
 }
 
 function generateMultiplierParams(request, params) {
   params.brokenMultiplier = request.enemyWeaknessBroken ? 1 : 0.9
-  params.resistance = (request.enemyElementalWeak ? 0 : request.enemyResistance) - request.buffResPen
+  params.resistance = (request.enemyElementalWeak ? 0 : request.enemyResistance) - request.combatBuffs.RES_SHRED
 }
 
 function generateElementParams(request, params) {
@@ -73,13 +73,16 @@ function generateElementParams(request, params) {
 
 function generateCharacterBaseParams(request, params) {
   const lightConeMetadata = DB.getMetadata().lightCones[request.lightCone]
-  const lightConeStats = lightConeMetadata?.promotions[80] || emptyLightCone()
+  const lightConeStats = lightConeMetadata?.stats || emptyLightCone()
   const lightConeSuperimposition = lightConeMetadata?.superimpositions[request.lightConeSuperimposition] || 1
 
   const characterMetadata = DB.getMetadata().characters[request.characterId]
-  const characterStats = characterMetadata.promotions[80]
+  const characterStats = characterMetadata.stats
 
   params.element = characterMetadata.element
+  params.path = characterMetadata.path
+
+  request.path = params.path
 
   const baseStats = {
     base: {

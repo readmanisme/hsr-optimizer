@@ -26,7 +26,7 @@ import { Constants } from 'lib/constants'
 const { useToken } = theme
 // NOTE: These strings are replaced by github actions for beta deployment, don't change
 // BETA: https://9di5b7zvtb.execute-api.us-west-2.amazonaws.com/prod
-export const API_ENDPOINT = 'https://o4b6dqwu5a.execute-api.us-east-1.amazonaws.com/prod'
+export const API_ENDPOINT = 'https://9di5b7zvtb.execute-api.us-west-2.amazonaws.com/prod'
 
 function presetCharacters() {
   const char = (name) => Object.values(DB.getMetadata().characters).find((x) => x.displayName == name)?.id || null
@@ -34,9 +34,9 @@ function presetCharacters() {
   return [
     { characterId: char('Firefly'), lightConeId: lc('Whereabouts Should Dreams Rest') },
     { characterId: char('Jade'), lightConeId: lc('Yet Hope Is Priceless') },
-    { characterId: char('Robin'), lightConeId: lc('Flowing Nightglow') },
-    { characterId: char('Boothill'), lightConeId: lc('Sailing Towards A Second Life') },
-    { characterId: char('Stelle (Harmony)'), lightConeId: lc('Memories of the Past') },
+    { characterId: char('Yunli'), lightConeId: lc('Dance at Sunset') },
+    { characterId: char('Jiaoqiu'), lightConeId: lc('Those Many Springs') },
+    { characterId: char('March 7th (Hunt)'), lightConeId: lc('Cruising in the Stellar Sea'), lightConeSuperimposition: 5 },
     { custom: true },
   ].filter((x) => x.characterId != null || x.custom) // Unreleased characters
 }
@@ -72,17 +72,16 @@ export default function RelicScorerTab() {
 
     fetch(`${API_ENDPOINT}/profile/${id}`, { method: 'GET' })
       .then((response) => {
-        if (!response.ok) {
+        if (!response.ok && !response.source) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
         return response.json()
       })
       .then((data) => {
         console.log(data)
-        const useBackup = false
 
         let characters
-        if (useBackup) {
+        if (data.source == 'mana') {
           // Backup
           data = Utils.recursiveToCamel(data)
           characters = [
@@ -102,17 +101,17 @@ export default function RelicScorerTab() {
             return 'ERROR'
           }
 
-          characters = data.detailInfo.avatarDetailList
-          .filter((x) => !!x)
-          .sort((a, b) => {
-            if (b._assist && a._assist) return (a.pos || 0) - (b.pos || 0)
-            if (b._assist) return 1
-            if (a._assist) return -1
-            return 0
-          })
-          .filter((item, index, array) => {
-            return array.findIndex((i) => i.avatarId === item.avatarId) === index
-          })
+          characters = [...(data.detailInfo.assistAvatarList || []), ...(data.detailInfo.avatarDetailList || [])]
+            .filter((x) => !!x)
+            .sort((a, b) => {
+              if (b._assist && a._assist) return (a.pos || 0) - (b.pos || 0)
+              if (b._assist) return 1
+              if (a._assist) return -1
+              return 0
+            })
+            .filter((item, index, array) => {
+              return array.findIndex((i) => i.avatarId === item.avatarId) === index
+            })
         }
 
         console.log('characters', characters)
@@ -147,9 +146,9 @@ export default function RelicScorerTab() {
   return (
     <div>
       <Flex vertical gap={0} align="center">
-         {/*<Flex gap={10} vertical align='center'>*/}
-         {/* <Text><h2>The relic scorer is down for maintenance after the 2.2 patch - stay tuned!</h2></Text>*/}
-         {/*</Flex>*/}
+        {/* <Flex gap={10} vertical align="center"> */}
+        {/*  <Text><h2>The relic scorer may be slow today, try refreshing the page</h2></Text> */}
+        {/* </Flex> */}
         <Flex gap={10} vertical align="center">
           <Text>Enter your account UID to score your profile characters at level 80 with maxed traces. Log out of the game to refresh instantly.</Text>
         </Flex>
@@ -296,7 +295,7 @@ function CharacterPreviewSelection(props) {
       characterLevel: 80,
       lightConeLevel: 80,
       characterEidolon: 0,
-      lightConeSuperimposition: 1,
+      lightConeSuperimposition: e.lightConeSuperimposition || 1,
     })
   }
 

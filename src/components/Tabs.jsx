@@ -44,6 +44,8 @@ const Tabs = () => {
         optimizerInitialized = true
         WorkerPool.initializeAllWorkers()
       }
+    } else {
+      window.scrollTo(0, 0)
     }
   }, [activeKey])
 
@@ -76,6 +78,7 @@ function TabRenderer(props) {
     </ErrorBoundary>
   )
 }
+
 TabRenderer.propTypes = {
   activeKey: PropTypes.string,
   tabKey: PropTypes.string,

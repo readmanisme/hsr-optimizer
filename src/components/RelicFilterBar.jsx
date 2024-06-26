@@ -26,7 +26,7 @@ const BLANK = Assets.getBlank()
 
 export default function RelicFilterBar(props) {
   const setRelicTabFilters = window.store((s) => s.setRelicTabFilters)
-  const setScoringAlgorithmFocusCharacter = window.store((s) => s.setScoringAlgorithmFocusCharacter)
+  const setRelicsTabFocusCharacter = window.store((s) => s.setRelicsTabFocusCharacter)
 
   const [currentlySelectedCharacterId, setCurrentlySelectedCharacterId] = useState()
 
@@ -103,7 +103,7 @@ export default function RelicFilterBar(props) {
 
   const gradeData = generateGradeTags([2, 3, 4, 5])
   const verifiedData = generateVerifiedTags([false, true])
-  const setsData = generateImageTags(Object.values(Constants.SetsRelics).concat(Object.values(Constants.SetsOrnaments)).filter(x => !UnreleasedSets[x]),
+  const setsData = generateImageTags(Object.values(Constants.SetsRelics).concat(Object.values(Constants.SetsOrnaments)).filter((x) => !UnreleasedSets[x]),
     (x) => Assets.getSetImage(x, Constants.Parts.PlanarSphere), true)
   const partsData = generateImageTags(Object.values(Constants.Parts), (x) => Assets.getPart(x), false)
   const mainStatsData = generateImageTags(Constants.MainStats, (x) => Assets.getStatIcon(x, true), true)
@@ -136,7 +136,7 @@ export default function RelicFilterBar(props) {
     const relics = Object.values(DB.getRelicsById())
     console.log('idChange', id)
 
-    setScoringAlgorithmFocusCharacter(id)
+    setRelicsTabFocusCharacter(id)
     setCurrentlySelectedCharacterId(id)
 
     const allCharacters = characterOptions.map((val) => val.id)
@@ -169,10 +169,11 @@ export default function RelicFilterBar(props) {
       }
     }
 
-    DB.setRelics(relics)
+    // Clone the relics to refresh the sort
+    DB.setRelics(Utils.clone(relics))
 
     if (id && window.relicsGrid?.current?.api) {
-      const isSorted = window.relicsGrid.current.columnApi.getColumnState().filter((s) => s.sort !== null)
+      const isSorted = window.relicsGrid.current.api.getColumnState().filter((s) => s.sort !== null)
 
       if (!isSorted) {
         window.relicsGrid.current.api.applyColumnState({
@@ -234,7 +235,7 @@ export default function RelicFilterBar(props) {
 
       <Flex vertical>
         <HeaderText>Set</HeaderText>
-        <FilterRow name="set" tags={setsData} flexBasis={`${100/Object.values(SetsRelics).length}%`} />
+        <FilterRow name="set" tags={setsData} flexBasis={`${100 / Object.values(SetsRelics).length}%`} />
       </Flex>
 
       <Flex vertical>
@@ -258,6 +259,7 @@ export default function RelicFilterBar(props) {
                 // Wait until after modal closes to update
                 setTimeout(() => characterSelectorChange(x), 20)
               }}
+              withIcon={true}
             />
             <Button
               onClick={rescoreClicked}

@@ -7,7 +7,7 @@ export const KelzScannerConfig = {
   releases: 'https://github.com/kel-z/HSR-Scanner/releases/latest',
   defaultFileName: 'HSRScanData.json',
   sourceString: 'HSR-Scanner',
-  latestBuildVersion: 'v1.0.0',
+  latestBuildVersion: 'v1.1.0',
   latestOutputVersion: 3,
   speedVerified: false,
 }
@@ -19,18 +19,30 @@ export const ReliquaryArchiverConfig = {
   releases: 'https://github.com/IceDynamix/reliquary-archiver/releases/latest',
   defaultFileName: 'archiver_output.json',
   sourceString: 'reliquary_archiver',
-  latestBuildVersion: 'v0.1.5',
+  latestBuildVersion: 'v0.1.7',
   latestOutputVersion: 3,
   speedVerified: true,
 }
 
+export const YasScannerConfig = {
+  name: 'Yas Scanner',
+  author: 'wormtql, YCR160',
+  homepage: 'https://github.com/wormtql/yas',
+  releases: '', // not released yet
+  defaultFileName: 'hsr.json',
+  sourceString: 'yas-scanner',
+  latestBuildVersion: 'v0.0.0',
+  latestOutputVersion: 3,
+}
+
 export const KelzScannerParser = new KelzFormatParser(KelzScannerConfig)
 export const ReliquaryArchiverParser = new KelzFormatParser(ReliquaryArchiverConfig)
+export const YasScannerParser = new KelzFormatParser(YasScannerConfig)
 
 export const ScannerSourceToParser = {
   [KelzScannerConfig.sourceString]: KelzScannerParser,
   [ReliquaryArchiverConfig.sourceString]: ReliquaryArchiverParser,
-
+  [YasScannerConfig.sourceString]: YasScannerParser,
 }
 
 export const ValidScannerSources = Object.keys(ScannerSourceToParser)

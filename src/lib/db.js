@@ -2,7 +2,14 @@ import { create } from 'zustand'
 import objectHash from 'object-hash'
 import { OptimizerTabController } from 'lib/optimizerTabController'
 import { RelicAugmenter } from 'lib/relicAugmenter'
-import { Constants, CURRENT_OPTIMIZER_VERSION, DEFAULT_STAT_DISPLAY, RelicSetFilterOptions } from 'lib/constants.ts'
+import {
+  Constants,
+  CURRENT_OPTIMIZER_VERSION,
+  DEFAULT_STAT_DISPLAY,
+  RelicSetFilterOptions,
+  Sets,
+  SIMULATION_SCORE
+} from 'lib/constants.ts'
 import { SavedSessionKeys } from 'lib/constantsSession'
 import { getDefaultForm } from 'lib/defaultForm'
 import { Utils } from 'lib/utils'
@@ -68,12 +75,14 @@ window.store = create((set) => ({
   optimizerTabFocusCharacter: undefined,
   characterTabFocusCharacter: undefined,
   scoringAlgorithmFocusCharacter: undefined,
+  relicsTabFocusCharacter: undefined,
 
   activeKey: RouteToPage[Utils.stripTrailingSlashes(window.location.pathname)] ? RouteToPage[Utils.stripTrailingSlashes(window.location.pathname) + window.location.hash] : AppPages.OPTIMIZER,
   characters: [],
   charactersById: {},
-  characterTabBlur: false,
   conditionalSetEffectsDrawerOpen: false,
+  combatBuffsDrawerOpen: false,
+  enemyConfigurationsDrawerOpen: false,
   settingsDrawerOpen: false,
   permutations: 0,
   permutationsResults: 0,
@@ -126,12 +135,13 @@ window.store = create((set) => ({
     [OptimizerMenuIds.characterOptions]: true,
     [OptimizerMenuIds.relicAndStatFilters]: true,
     [OptimizerMenuIds.teammates]: true,
-    [OptimizerMenuIds.characterStatsSimulation]: true,
+    [OptimizerMenuIds.characterStatsSimulation]: false,
   },
 
   savedSession: {
     [SavedSessionKeys.optimizerCharacterId]: null,
     [SavedSessionKeys.relicScorerSidebarOpen]: true,
+    [SavedSessionKeys.scoringType]: SIMULATION_SCORE,
   },
 
   settings: DefaultSettingOptions,
@@ -140,12 +150,14 @@ window.store = create((set) => ({
   setActiveKey: (x) => set(() => ({ activeKey: x })),
   setCharacters: (x) => set(() => ({ characters: x })),
   setCharactersById: (x) => set(() => ({ charactersById: x })),
-  setCharacterTabBlur: (x) => set(() => ({ characterTabBlur: x })),
   setConditionalSetEffectsDrawerOpen: (x) => set(() => ({ conditionalSetEffectsDrawerOpen: x })),
+  setCombatBuffsDrawerOpen: (x) => set(() => ({ combatBuffsDrawerOpen: x })),
+  setEnemyConfigurationsDrawerOpen: (x) => set(() => ({ enemyConfigurationsDrawerOpen: x })),
   setSettingsDrawerOpen: (x) => set(() => ({ settingsDrawerOpen: x })),
   setOptimizerTabFocusCharacter: (characterId) => set(() => ({ optimizerTabFocusCharacter: characterId })),
   setCharacterTabFocusCharacter: (characterId) => set(() => ({ characterTabFocusCharacter: characterId })),
   setScoringAlgorithmFocusCharacter: (characterId) => set(() => ({ scoringAlgorithmFocusCharacter: characterId })),
+  setRelicsTabFocusCharacter: (characterId) => set(() => ({ relicsTabFocusCharacter: characterId })),
   setPermutationDetails: (x) => set(() => ({ permutationDetails: x })),
   setPermutations: (x) => set(() => ({ permutations: x })),
   setPermutationsResults: (x) => set(() => ({ permutationsResults: x })),
@@ -156,7 +168,7 @@ window.store = create((set) => ({
   setScoringMetadataOverrides: (x) => set(() => ({ scoringMetadataOverrides: x })),
   setStatDisplay: (x) => set(() => ({ statDisplay: x })),
   setStatSimulationDisplay: (x) => set(() => ({ statSimulationDisplay: x })),
-  setStatSimulations: (x) => set(() => ({ statSimulations: x })),
+  setStatSimulations: (x) => set(() => ({ statSimulations: Utils.clone(x) })),
   setSelectedStatSimulations: (x) => set(() => ({ selectedStatSimulations: x })),
   setOptimizerMenuState: (x) => set(() => ({ optimizerMenuState: x })),
   setOptimizationInProgress: (x) => set(() => ({ optimizationInProgress: x })),
@@ -283,7 +295,7 @@ export const DB = {
   getScoringMetadata: (id) => {
     const defaultScoringMetadata = DB.getMetadata().characters[id].scoringMetadata
     const scoringMetadataOverrides = window.store.getState().scoringMetadataOverrides[id]
-    const returnScoringMetadata = scoringMetadataOverrides || defaultScoringMetadata
+    const returnScoringMetadata = Utils.mergeUndefinedValues(scoringMetadataOverrides || {}, defaultScoringMetadata)
 
     for (const key of Object.keys(returnScoringMetadata.stats)) {
       if (returnScoringMetadata.stats[key] == null) {
@@ -291,14 +303,38 @@ export const DB = {
       }
     }
 
+    // We don't want to carry over presets, use the optimizer defined ones
+    delete returnScoringMetadata.presets
+
     return returnScoringMetadata
   },
   updateCharacterScoreOverrides: (id, updated) => {
     const overrides = window.store.getState().scoringMetadataOverrides
-    overrides[id] = updated
+    if (!overrides[id]) {
+      overrides[id] = updated
+    } else {
+      Utils.mergeDefinedValues(overrides[id], updated)
+    }
     window.store.getState().setScoringMetadataOverrides(overrides)
 
     SaveState.save()
+  },
+  updateSimulationScoreOverrides: (id, updatedSimulation) => {
+    if (!updatedSimulation) return
+
+    const overrides = window.store.getState().scoringMetadataOverrides
+    if (!overrides[id]) {
+      overrides[id] = {
+        simulation: updatedSimulation,
+      }
+    } else {
+      overrides[id].simulation = updatedSimulation
+    }
+    window.store.getState().setScoringMetadataOverrides(overrides)
+
+    setTimeout(() => {
+      SaveState.save()
+    }, 2000)
   },
 
   setStore: (x) => {
@@ -307,11 +343,16 @@ export const DB = {
     const dbLightCones = DB.getMetadata().lightCones
 
     // Remove invalid characters
-    x.characters = x.characters.filter(x => dbCharacters[x.id])
+    x.characters = x.characters.filter((x) => dbCharacters[x.id])
 
     for (const character of x.characters) {
       character.equipped = {}
       charactersById[character.id] = character
+
+      // Previously sim requests didnt use the stats field
+      if (character.form?.statSim?.simulations) {
+        character.form.statSim.simulations = character.form.statSim.simulations.filter((x) => x.request?.stats)
+      }
 
       // Previously characters had customizable options, now we're defaulting to 80s
       character.form.characterLevel = 80
@@ -339,6 +380,11 @@ export const DB = {
       for (const part of Object.keys(Constants.Parts)) {
         character.form['main' + part] = deduplicateArray(character.form['main' + part])
       }
+
+      // In beta, Duran maxed out at 6
+      if (character.form.setConditionals?.[Sets.DuranDynastyOfRunningWolves]?.[1] > 5) {
+        character.form.setConditionals[Sets.DuranDynastyOfRunningWolves][1] = 5
+      }
     }
 
     for (const character of Object.values(dbCharacters)) {
@@ -358,8 +404,17 @@ export const DB = {
       }
     }
 
+    if (x.scoringMetadataOverrides) {
+      for (const [key, value] of Object.entries(x.scoringMetadataOverrides)) {
+        // Previously the overrides were an array, invalidate the arrays
+        if (value.length) {
+          delete x.scoringMetadataOverrides[key]
+        }
+      }
+      window.store.getState().setScoringMetadataOverrides(x.scoringMetadataOverrides || {})
+    }
+
     window.store.getState().setScorerId(x.scorerId)
-    window.store.getState().setScoringMetadataOverrides(x.scoringMetadataOverrides || {})
     if (x.optimizerMenuState) {
       const menuState = window.store.getState().optimizerMenuState
       for (const key of Object.values(OptimizerMenuIds)) {
@@ -440,7 +495,7 @@ export const DB = {
   saveCharacterPortrait: (characterId, portrait) => {
     let character = DB.getCharacterById(characterId)
     if (!character) {
-      DB.addFromForm({characterId: characterId})
+      DB.addFromForm({ characterId: characterId })
       character = DB.getCharacterById(characterId)
       console.log('Character did not previously exist, adding', character)
     }
@@ -784,9 +839,18 @@ export const DB = {
           const newSubstat = newRelic.substats.find((x) => x.stat == matchSubstat.stat)
 
           // Different substats mean different relics - break
-          if (!newSubstat) { exit = true; break }
-          if (matchSubstat.stat != newSubstat.stat) { exit = true; break }
-          if (compareSameTypeSubstat(matchSubstat, newSubstat) == -1) { exit = true; break }
+          if (!newSubstat) {
+            exit = true
+            break
+          }
+          if (matchSubstat.stat != newSubstat.stat) {
+            exit = true
+            break
+          }
+          if (compareSameTypeSubstat(matchSubstat, newSubstat) == -1) {
+            exit = true
+            break
+          }
 
           // Track if the number of stat increases make sense
           if (compareSameTypeSubstat(matchSubstat, newSubstat) == 1) {

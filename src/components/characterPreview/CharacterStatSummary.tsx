@@ -2,9 +2,14 @@ import { Flex } from 'antd'
 import StatRow from 'components/characterPreview/StatRow.tsx'
 import { Constants } from 'lib/constants.ts'
 
-export const CharacterStatSummary = (props: { finalStats: any; elementalDmgValue: string }) => {
+export const CharacterStatSummary = (props: {
+  finalStats: any
+  elementalDmgValue: string
+  cv?: number
+  simScore?: number
+}) => {
   return (
-    <Flex vertical style={{ paddingLeft: 6, paddingRight: 8 }} gap={4}>
+    <Flex vertical style={{ paddingLeft: 6, paddingRight: 8 }} gap={3}>
       <StatRow finalStats={props.finalStats} stat={Constants.Stats.HP} />
       <StatRow finalStats={props.finalStats} stat={Constants.Stats.ATK} />
       <StatRow finalStats={props.finalStats} stat={Constants.Stats.DEF} />
@@ -15,7 +20,8 @@ export const CharacterStatSummary = (props: { finalStats: any; elementalDmgValue
       <StatRow finalStats={props.finalStats} stat={Constants.Stats.RES} />
       <StatRow finalStats={props.finalStats} stat={Constants.Stats.BE} />
       <StatRow finalStats={props.finalStats} stat={props.elementalDmgValue} />
-      <StatRow finalStats={props.finalStats} stat="CV" />
+      {props.cv != null && <StatRow finalStats={props.finalStats} stat="CV" value={props.cv} />}
+      {props.simScore != null && <StatRow finalStats={props.finalStats} stat="simScore" value={props.simScore} />}
     </Flex>
   )
 }

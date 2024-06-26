@@ -39,6 +39,7 @@ export const Assets = {
       }
     }
     if (stat == 'CV') return getImageUrl(`/misc/cv.webp`)
+    if (stat == 'simScore') return getImageUrl(`/misc/battle.webp`)
     if (stat == Constants.Stats.HP_P && percented) return getImageUrl(`/misc/IconMaxHPPercent.webp`)
     if (stat == Constants.Stats.ATK_P && percented) return getImageUrl(`/misc/IconAttackPercent.webp`)
     if (stat == Constants.Stats.DEF_P && percented) return getImageUrl(`/misc/IconDefencePercent.webp`)
@@ -58,6 +59,11 @@ export const Assets = {
     if (!id) return Assets.getBlank()
 
     return getImageUrl(`/icon/avatar/${id}.webp`)
+  },
+  getCharacterIconById: (id) => {
+    if (!id) return Assets.getBlank()
+
+    return getImageUrl(`/icon/character/${id}.webp`)
   },
   getCharacterPreviewById: (id) => {
     if (!id) return Assets.getBlank()
@@ -82,24 +88,12 @@ export const Assets = {
     return getImageUrl(`/icon/path/${path}.webp`)
   },
   getPathFromClass: (c) => {
-    if (!pathFromClassMapping) {
-      pathFromClassMapping = {
-        Warrior: 'Destruction',
-        Warlock: 'Nihility',
-        Knight: 'Preservation',
-        Priest: 'Abundance',
-        Rogue: 'Hunt',
-        Shaman: 'Harmony',
-        Mage: 'Erudition',
-      }
-    }
-    if (!c || !pathFromClassMapping[c]) return Assets.getBlank()
-    return getImageUrl(`/icon/path/${pathFromClassMapping[c]}.webp`)
+    if (!c) return Assets.getBlank()
+    return getImageUrl(`/icon/path/${c}.webp`)
   },
 
   getElement: (element) => {
     if (!element) return Assets.getBlank()
-    if (element == 'Thunder') element = 'Lightning'
     return getImageUrl(`/icon/element/${element}.webp`)
   },
   getBlank: () => {
@@ -167,7 +161,7 @@ export const Assets = {
       [Constants.Sets.PrisonerInDeepConfinement]: '116',
       [Constants.Sets.PioneerDiverOfDeadWaters]: '117',
       [Constants.Sets.WatchmakerMasterOfDreamMachinations]: '118',
-      [Constants.Sets.IronCavalryAgainstScourge]: '119',
+      [Constants.Sets.IronCavalryAgainstTheScourge]: '119',
       [Constants.Sets.TheWindSoaringValorous]: '120',
 
       [Constants.Sets.SpaceSealingStation]: '301',

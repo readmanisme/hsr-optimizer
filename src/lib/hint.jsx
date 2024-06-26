@@ -133,9 +133,9 @@ export const Hint = {
             - When this option is enabled, the character may only steal relics from lower priority characters. The optimizer will ignore relics equipped by higher priority characters on the list. Change character ranks from the priority selector or by dragging them on the Characters page.
           </p>
           <p>
-            <strong>Maxed main stat</strong>
+            <strong>Boost main stat</strong>
             {' '}
-            - Assume the main stat for relics are maxed
+            - Calculates relic mains stats as if they were this level (or their max if they can't reach this level) if they are currently below it. Substats are not changed accordingly, so builds with lower level relics may be stronger once you level them.
           </p>
           <p>
             <strong>Keep current relics</strong>
@@ -218,9 +218,9 @@ export const Hint = {
       content: (
         <Flex vertical gap={10}>
           <p>This filter is used to reduce the number of permutations the optimizer has to process.</p>
-          <p>It works by first scoring each relic per slot by the weights defined, then sorting the relics in each slot by their score.</p>
-          <p>Then, the filter only uses the Top X% of the scored relics in the optimization search. The number of filtered relics are visible in the Permutations display on the sidebar.</p>
-          <p>Note that setting the Top X% too low may result in some builds not being displayed, if the filter ends up excludes a key relic. Use this filter with caution, but on large searches it makes a large impact on reducing search time.</p>
+          <p>It works by first scoring each relic per slot by the weights defined, then filtering by the number of weighted min rolls the relic has.</p>
+          <p>Only relics that have more than the specified number of weighted rolls will be used for the optimization search.</p>
+          <p>Note that setting the minimum rolls too low may result in some builds not being displayed, if the filter ends up excludes a key relic. Use this filter with caution, but on large searches it makes a large impact on reducing search time.</p>
         </Flex>
       ),
     }

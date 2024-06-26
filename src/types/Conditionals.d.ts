@@ -20,7 +20,8 @@ export interface Conditional {
    * ComputedStatsObject arg is mutated by ref
    */
   calculateBaseMultis: (c: ComputedStatsObject, request: Form) => void
-  calculatePassives?: () => void
+  // Stat conversions
+  calculatePassives?: (c: ComputedStatsObject, request: Form) => void
 }
 
 export type ContentComponentMap = {
@@ -336,3 +337,33 @@ export type ConditionalBuff =
   | 'ultFuaCdBoost'
   | 'superBreakDmg'
   | 'routedVulnerability'
+  | 'fuaStacks'
+  | 'skillDot'
+  | 'e1EffectResShred'
+  | 'e4ResBuff'
+  | 'superBreakEnabled'
+  | 'ultCdBoost'
+  | 'cdBuff'
+  | 'fuaDmgStacks'
+  | 'unarmoredVulnerability'
+  | 'corneredVulnerability'
+  | 'ashenRoastStacks'
+  | 'ehrToAtkBoost'
+  | 'e1DmgBoost'
+  | 'e2Dot'
+  | 'e6ResShred'
+  | 'masterBuff'
+  | 'basicAttackHits'
+  | 'talentDmgBuff'
+  | 'selfSpdBuff'
+  | 'e1EnhancedBasicCdBuff'
+  | 'e6MasterBuffs'
+  | 'skillSpdScaling'
+  | 'counterAtkBuff'
+  | 'blockActive'
+  | 'e1UltBuff'
+  | 'ultCull'
+  | 'ultCullHits'
+  | 'e4DefShred'
+  | 'masterToughnessRedBuff'
+  | 'masterAdditionalDmgBuff'

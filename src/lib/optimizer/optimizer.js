@@ -20,7 +20,7 @@ export function calculateCurrentlyEquippedRow(request) {
   let relics = Utils.clone(DB.getRelics())
   RelicFilters.calculateWeightScore(request, relics)
   relics = relics.filter((x) => x.equippedBy == request.characterId)
-  relics = RelicFilters.applyMaxedMainStatsFilter(request, relics)
+  relics = RelicFilters.applyMainStatsFilter(request, relics)
   relics = RelicFilters.splitRelicsByPart(relics)
   RelicFilters.condenseRelicSubstatsForOptimizer(relics)
   Object.keys(relics).map((key) => relics[key] = relics[key][0])
@@ -50,7 +50,7 @@ export const Optimizer = {
     const preFilteredRelicsByPart = RelicFilters.splitRelicsByPart(relics)
 
     relics = RelicFilters.applyMainFilter(request, relics)
-    relics = RelicFilters.applyMaxedMainStatsFilter(request, relics)
+    relics = RelicFilters.applyMainStatsFilter(request, relics)
     relics = RelicFilters.applySetFilter(request, relics)
 
     // Post-split filters
@@ -62,7 +62,7 @@ export const Optimizer = {
     return [relics, preFilteredRelicsByPart]
   },
 
-  optimize: function(request) {
+  optimize: function (request) {
     CANCEL = false
 
     window.store.getState().setPermutationsSearched(0)
@@ -184,7 +184,7 @@ export const Optimizer = {
           OptimizerTabController.setRows(results)
           setSortColumn(gridSortColumn)
 
-          window.optimizerGrid.current.api.updateGridOptions({ datasource: OptimizerTabController.getDataSource() })
+          window.optimizerGrid.current.api.updateGridOptions({datasource: OptimizerTabController.getDataSource()})
           console.log('Done', results.length)
           resultsShown = true
           return
@@ -211,6 +211,7 @@ export function renameFields(c) {
   c.FUA = c.x.FUA_DMG
   c.DOT = c.x.DOT_DMG
   c.BREAK = c.x.BREAK_DMG
+  c.COMBO = c.x.COMBO_DMG
   c.WEIGHT = c.x.WEIGHT
   c.EHP = c.x.EHP
   c.xHP = c.x[Stats.HP]

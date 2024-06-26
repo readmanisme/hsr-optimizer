@@ -7,10 +7,8 @@ import { CharacterConditional, PrecomputedCharacterConditional } from 'types/Cha
 import { Form } from 'types/Form'
 import { ContentItem } from 'types/Conditionals'
 
-const betaUpdate = 'All calculations are subject to change. Last updated 04-15-2024.'
-
 export default (e: Eidolon): CharacterConditional => {
-  const {basic, skill, ult} = AbilityEidolon.SKILL_TALENT_3_ULT_BASIC_5
+  const { basic, skill, ult } = AbilityEidolon.SKILL_TALENT_3_ULT_BASIC_5
 
   const basicScaling = basic(e, 1.00, 1.10)
   const skillScaling = skill(e, 0.50, 0.55)
@@ -20,7 +18,7 @@ export default (e: Eidolon): CharacterConditional => {
   const targetsToSuperBreakMulti = {
     1: 1.60,
     3: 1.40,
-    5: 1.20
+    5: 1.20,
   }
 
   const content: ContentItem[] = [
@@ -123,7 +121,7 @@ export default (e: Eidolon): CharacterConditional => {
 
       x[Stats.BE] += (m.backupDancer) ? ultBeScaling : 0
 
-      x.SUPER_BREAK_MODIFIER += (m.backupDancer && m.superBreakDmg) ? targetsToSuperBreakMulti[request.enemyCount] : 0
+      x.SUPER_BREAK_HMC_MODIFIER += (m.backupDancer && m.superBreakDmg) ? targetsToSuperBreakMulti[request.enemyCount] : 0
     },
     precomputeTeammateEffects: (x: ComputedStatsObject, request: Form) => {
       const t = request.characterConditionals

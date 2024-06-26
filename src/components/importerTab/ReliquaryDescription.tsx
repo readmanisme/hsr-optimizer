@@ -5,15 +5,15 @@ import { ColorizedLink } from '../common/ColorizedLink'
 export function ReliquaryDescription(): ReactElement {
   return (
     <>
-      {(
+      {true && (
         <li>
-          {'(Recommended) IceDynamix Reliquary Archiver'} (
+          <b>(Recommended) IceDynamix Reliquary Archiver</b> (
           <ColorizedLink text="Github" url={ReliquaryArchiverConfig.releases} />
           )
           <ul>
-            <li>Network scanner</li>
-            <li>Imports accurate speed decimals for the entire inventory</li>
-            <li>Beta release - run from command line if exe doesn't work, please report bugs to the discord server</li>
+            <li><b>***** Now updated for version 2.3! Please download newest version from Github *****</b></li>
+            <li>Accurate speed decimals, instant scan</li>
+            <li>Imports full inventory and character roster</li>
           </ul>
         </li>
       )}

@@ -9,19 +9,31 @@ import { ConditionalLightConeMap } from './LightConeConditionals'
 type MIN_INT = 0 | number
 type MAX_INT = 2147483647 | number
 
+export type Teammate = {
+  characterId: string
+  characterEidolon: number
+  lightCone: string
+  lightConeSuperimposition: number
+  teamOrnamentSet?: string
+  teamRelicSet?: string
+} | Form
+
 export type Form = {
   characterEidolon: Eidolon
   characterId: CharacterId | undefined
   characterLevel: number
-  enemyCount: number
-  enemyElementalWeak: number
-  enemyLevel: number
-  enemyMaxToughness: number
-  enemyResistance: number
-  enemyWeaknessBroken: boolean
-  enhance: RelicEnhance
-  grade: RelicGrade
+  enemyOptions: {
+    enemyCount: number
+    enemyElementalWeak: number
+    enemyLevel: number
+    enemyMaxToughness: number
+    enemyResistance: number
+    enemyWeaknessBroken: boolean
+  }
+  enhance: RelicEnhance | number
+  grade: RelicGrade | number
   keepCurrentRelics: boolean
+  lightCone: string
   lightConeConditionals: ConditionalLightConeMap
   lightConeLevel: number
   lightConeSuperimposition: SuperImpositionLevel
@@ -32,27 +44,29 @@ export type Form = {
   mainLinkRope: any[]
   mainPlanarSphere: any[]
   ornamentSets: any[]
-  predictMaxedMainStat: boolean
+  mainStatUpscaleLevel: number
   rankFilter: boolean
   relicSets: RelicSet[]
   statDisplay: string
   PRIMARY_ELEMENTAL_DMG_TYPE: string
+  statSim?: any
+  path?: string
 
   weights: {
     [key: string]: number
   }
   characterConditionals: CharacterConditionalMap
 
-  buffAtk: number
-  buffAtkP: number
-  buffBe: number
-  buffCd: number
-  buffCr: number
-  buffDefShred: number
-  buffDmgBoost: number
-  buffResPen: number
-  buffSpd: number
-  buffSpdP: number
+  combatBuffs: {
+    [key: string]: number
+  }
+  combo: {
+    [key: string]: number
+  }
+
+  teammate0: Teammate
+  teammate1: Teammate
+  teammate2: Teammate
 
   baseHp: number
   baseAtk: number
@@ -68,6 +82,7 @@ export type Form = {
   maxDmg: MAX_INT
   maxDot: MAX_INT
   maxBreak: MAX_INT
+  maxCombo: MAX_INT
   maxEhp: MAX_INT
   maxEhr: MAX_INT
   maxErr: MAX_INT
@@ -88,6 +103,7 @@ export type Form = {
   minDmg: MIN_INT
   minDot: MIN_INT
   minBreak: MIN_INT
+  minCombo: MIN_INT
   minEhp: MIN_INT
   minEhr: MIN_INT
   minErr: MIN_INT

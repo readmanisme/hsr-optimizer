@@ -1,9 +1,5 @@
 import { Stats } from 'lib/constants'
-import {
-  ASHBLAZING_ATK_STACK,
-  baseComputedStatsObject,
-  ComputedStatsObject
-} from 'lib/conditionals/conditionalConstants.ts'
+import { ASHBLAZING_ATK_STACK, baseComputedStatsObject, ComputedStatsObject } from 'lib/conditionals/conditionalConstants.ts'
 import { AbilityEidolon, calculateAshblazingSet, precisionRound } from 'lib/conditionals/utils'
 
 import { Eidolon } from 'types/Character'
@@ -19,20 +15,52 @@ export default (e: Eidolon): CharacterConditional => {
   const ultScaling = ult(e, 2.00, 2.16)
   const fuaScaling = talent(e, 0.40, 0.43)
 
-  const hitMultiByTargets = {
-    1: ASHBLAZING_ATK_STACK * (1 * 1 / 1),
-    3: ASHBLAZING_ATK_STACK * (2 * 1 / 1),
-    5: ASHBLAZING_ATK_STACK * (3 * 1 / 1),
+  function getHitMultiByTargetsAndHits(hits, request) {
+    const div = 1 / hits
+
+    if (request.enemyCount == 1) {
+      let stacks = 1
+      let multi = 0
+      for (let i = 0; i < hits; i++) {
+        multi += div * stacks
+        stacks = Math.min(8, stacks + 1)
+      }
+      return multi
+    }
+
+    if (request.enemyCount == 3) {
+      let stacks = 2
+      let multi = 0
+      for (let i = 0; i < hits; i++) {
+        multi += div * stacks
+        stacks = Math.min(8, stacks + 3)
+      }
+      return multi
+    }
+
+    if (request.enemyCount == 5) {
+      let stacks = 3
+      let multi = 0
+      for (let i = 0; i < hits; i++) {
+        multi += div * stacks
+        stacks = Math.min(8, stacks + 5)
+      }
+      return multi
+    }
+
+    return 1
   }
 
   const content: ContentItem[] = [
     {
-      formItem: 'switch',
-      id: 'techniqueBuff',
-      name: 'techniqueBuff',
-      text: 'Technique buff',
-      title: 'Technique buff',
-      content: `Increases ATK by ${precisionRound(0.40 * 100)}% for 3 turns.`,
+      formItem: 'slider',
+      id: 'fuaStacks',
+      name: 'fuaStacks',
+      text: 'Followup attack hits',
+      title: 'Followup attack hits',
+      content: `When an ally's attack causes an enemy's HP percentage to fall to 50% or lower, Herta will launch a follow-up attack, dealing Ice DMG.`,
+      min: 1,
+      max: 5,
     },
     {
       formItem: 'switch',
@@ -46,15 +74,23 @@ export default (e: Eidolon): CharacterConditional => {
       formItem: 'switch',
       id: 'enemyHpGte50',
       name: 'enemyHpGte50',
-      text: 'Enemy HP ≥ 50% skill DMG boost',
+      text: 'Skill DMG boost',
       title: 'One-Time Offer',
       content: `Skill: If the enemy's HP percentage is 50% or higher, DMG dealt to this target increases by 20%.`,
     },
     {
       formItem: 'switch',
+      id: 'techniqueBuff',
+      name: 'techniqueBuff',
+      text: 'Technique buff',
+      title: 'Technique buff',
+      content: `Increases ATK by ${precisionRound(0.40 * 100)}% for 3 turns.`,
+    },
+    {
+      formItem: 'switch',
       id: 'enemyHpLte50',
       name: 'enemyHpLte50',
-      text: 'E1 enemy HP ≤ 50% basic scaling boost',
+      text: 'E1 basic scaling boost',
       title: 'E1: Kick You When You\'re Down',
       content: `E1: If the enemy's HP percentage is at 50% or less, Herta's Basic ATK deals Additional Ice DMG equal to 40% of Herta's ATK.`,
       disabled: e < 1,
@@ -85,15 +121,15 @@ export default (e: Eidolon): CharacterConditional => {
     content: () => content,
     teammateContent: () => [],
     defaults: () => ({
-      techniqueBuff: true,
+      fuaStacks: 5,
+      techniqueBuff: false,
       targetFrozen: true,
       e2TalentCritStacks: 5,
       e6UltAtkBuff: true,
       enemyHpGte50: true,
       enemyHpLte50: false,
     }),
-    teammateDefaults: () => ({
-    }),
+    teammateDefaults: () => ({}),
     precomputeEffects: (request: Form) => {
       const r = request.characterConditionals
       const x = Object.assign({}, baseComputedStatsObject)
@@ -126,15 +162,23 @@ export default (e: Eidolon): CharacterConditional => {
     precomputeMutualEffects: (_x: ComputedStatsObject, _request: Form) => {
     },
     calculateBaseMultis: (c: PrecomputedCharacterConditional, request: Form) => {
+      const r = request.characterConditionals
       const x = c.x
 
       x.BASIC_DMG += x.BASIC_SCALING * x[Stats.ATK]
       x.SKILL_DMG += x.SKILL_SCALING * x[Stats.ATK]
       x.ULT_DMG += x.ULT_SCALING * x[Stats.ATK]
 
+      const hitMultiStacks = getHitMultiByTargetsAndHits(r.fuaStacks, request)
+      const hitMultiByTargets = {
+        1: ASHBLAZING_ATK_STACK * hitMultiStacks,
+        3: ASHBLAZING_ATK_STACK * hitMultiStacks,
+        5: ASHBLAZING_ATK_STACK * hitMultiStacks,
+      }
+
       const hitMulti = hitMultiByTargets[request.enemyCount]
       const { ashblazingMulti, ashblazingAtk } = calculateAshblazingSet(c, request, hitMulti)
-      x.FUA_DMG += x.FUA_SCALING * (x[Stats.ATK] - ashblazingAtk + ashblazingMulti)
+      x.FUA_DMG += x.FUA_SCALING * r.fuaStacks * (x[Stats.ATK] - ashblazingAtk + ashblazingMulti)
     },
   }
 }
